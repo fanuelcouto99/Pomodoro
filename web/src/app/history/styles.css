@@ -1,0 +1,19 @@
+table th {
+    @apply bg-gray-600 p-4 text-left text-gray-100 text-sm leading-6
+}
+
+table td {
+    @apply bg-gray-700 border-t-4 border-t-gray-800 p-4 text-sm leading-6
+}
+
+table td:first-child {
+    @apply pl-6 w-1/2
+}
+
+table td:last-child {
+    @apply pr-6
+}
+
+table td span {
+    @apply flex items-center gap-2
+}
