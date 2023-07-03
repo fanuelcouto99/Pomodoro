@@ -23,6 +23,7 @@ interface CycleProps {
 export function Form() {
     const [cycles, setCycles] = useState<CycleProps[]>([]);
     const [activeCycleId, setActiveCycleId] = useState<string | null>(null);
+    const [amountSecondsPassed, setAmountSecondsPassed] = useState(0);
 
     const { register, handleSubmit, watch, reset } = useForm<NewCycleFormData>({
         resolver: zodResolver(newCycleFormValidationSchema),
@@ -46,6 +47,13 @@ export function Form() {
     };
 
     const activeCycle = cycles.find(cycle => cycle.id === activeCycleId);
+
+    const totalSeconds = activeCycle ?  activeCycle.minutesAmount * 60 : 0;
+    const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0;
+    const minutesAmount = Math.floor(currentSeconds / 60);
+    const secondsAmount = currentSeconds % 60;
+    const minutes = String(minutesAmount).padStart(2,'0');
+    const seconds = String(secondsAmount).padStart(2, '0');
 
     const task = watch('task');
     const isSubmitDisabled = !task;
@@ -86,11 +94,11 @@ export function Form() {
                 </div>
 
                 <div className='font-roboto text-[10rem] leading-[8rem] text-gray-100 flex gap-4'>
-                    <span className='bg-gray-700 py-8 px-4 rounded-lg'>0</span>
-                    <span className='bg-gray-700 py-8 px-4 rounded-lg'>0</span>
+                    <span className='bg-gray-700 py-8 px-4 rounded-lg'>{minutes[0]}</span>
+                    <span className='bg-gray-700 py-8 px-4 rounded-lg'>{minutes[1]}</span>
                     <span className='px-8 text-green-500 w-16 overflow-hidden flex justify-center items-center'>:</span>
-                    <span className='bg-gray-700 py-8 px-4 rounded-lg'>0</span>
-                    <span className='bg-gray-700 py-8 px-4 rounded-lg'>0</span>
+                    <span className='bg-gray-700 py-8 px-4 rounded-lg'>{seconds[0]}</span>
+                    <span className='bg-gray-700 py-8 px-4 rounded-lg'>{seconds[1]}</span>
                 </div>
 
                 <button type="submit" disabled={isSubmitDisabled} className='w-full p-4 rounded-lg flex items-center justify-center gap-2 font-bold cursor-pointer bg-green-500 text-gray-100 enabled:hover:bg-green-700 disabled:opacity-70 disabled:cursor-not-allowed'>
