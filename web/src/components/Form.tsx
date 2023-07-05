@@ -38,11 +38,17 @@ export function Form() {
     const activeCycle = cycles.find(cycle => cycle.id === activeCycleId);
 
     useEffect(() => {
+        let interval: number;
+
         if (activeCycle) {
-            setInterval(() => {
+            interval = Number(setInterval(() => {
                 setAmountSecondsPassed(differenceInSeconds(new Date(), activeCycle.startDate));
-            }, 1000);
+            }, 1000));
         }
+
+        return () => {
+            clearInterval(interval);
+        };
     }, [activeCycle]);
 
     function handleCreateNewCycle(data: NewCycleFormData) {
@@ -56,6 +62,7 @@ export function Form() {
 
         setCycles(state => [...state, newCycle]);
         setActiveCycleId(id);
+        setAmountSecondsPassed(0);
         reset();
     };
 
@@ -68,6 +75,12 @@ export function Form() {
 
     const task = watch('task');
     const isSubmitDisabled = !task;
+
+    useEffect(() => {
+        if (activeCycle) {
+            document.title = `${minutes}:${seconds}`;
+        }
+    }, [minutes, seconds, activeCycle]);
 
     return (
         <>
