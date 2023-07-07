@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as zod from 'zod';
-import { differenceInSeconds } from 'date-fns';
 import { Play } from 'lucide-react';
 import { Hand } from 'lucide-react';
 import { CountDown } from './CountDown';
@@ -29,7 +28,6 @@ interface CycleProps {
 export function Form() {
     const [cycles, setCycles] = useState<CycleProps[]>([]);
     const [activeCycleId, setActiveCycleId] = useState<string | null>(null);
-    const [amountSecondsPassed, setAmountSecondsPassed] = useState(0);
 
     const { register, handleSubmit, watch, reset } = useForm<NewCycleFormData>({
         resolver: zodResolver(newCycleFormValidationSchema),
@@ -40,36 +38,6 @@ export function Form() {
     });
 
     const activeCycle = cycles.find(cycle => cycle.id === activeCycleId);
-    const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0;
-
-    useEffect(() => {
-        let interval: number;
-
-        if (activeCycle) {
-            interval = Number(setInterval(() => {
-                const secondsDifference = differenceInSeconds(new Date(), activeCycle.startDate);
-
-                if(secondsDifference >= totalSeconds) {
-                    setCycles((state) => state.map(cycle => {
-                        if(cycle.id === activeCycleId) {
-                            return {...cycle, finishedDateDate: new Date()}
-                        } else {
-                            return cycle
-                        }
-                    }));
-                    setAmountSecondsPassed(totalSeconds);
-                    clearInterval(interval);
-                    setActiveCycleId(null);
-                } else {
-                    setAmountSecondsPassed(secondsDifference);
-                }
-            }, 1000));
-        }
-
-        return () => {
-            clearInterval(interval);
-        };
-    }, [activeCycle, totalSeconds, activeCycleId]);
 
     function handleCreateNewCycle(data: NewCycleFormData) {
         const id = String(new Date().getTime());
