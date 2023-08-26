@@ -3,27 +3,10 @@ import { createContext, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as zod from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import * as zod from 'zod';
+import { differenceInSeconds } from 'date-fns';
 import { Play } from 'lucide-react';
 import { Hand } from 'lucide-react';
-import { NewCycleForm } from './NewCycleForm';
-import { Countdown } from './Countdown';
-
-interface CycleProps {
-    id: string;
-    task: string;
-    minutesAmount: number;
-    startDate: Date;
-    interruptedDate?: Date;
-    finishedDate?: Date;
-};
-
-interface CyclesContextType {
-    activeCycle: CycleProps | undefined;
-    activeCycleId: string | null;
-    amountSecondsPassed: number;
-    markCurrentCycleAsFinished: () => void;
-    setSecondsPassed: (seconds: number) => void;
-};
 
 const newCycleFormValidationSchema = zod.object({
     task: zod.string().min(1, "Informe a tarefa!"),
@@ -39,8 +22,6 @@ export const CyclesContext = createContext({} as CyclesContextType);
 export function Form() {
     const [cycles, setCycles] = useState<CycleProps[]>([]);
     const [activeCycleId, setActiveCycleId] = useState<string | null>(null);
-
-    const activeCycle = cycles.find(cycle => cycle.id === activeCycleId);
     const [amountSecondsPassed, setAmountSecondsPassed] = useState(0);
 
     const newCycleForm = useForm<NewCycleFormData>({
@@ -51,21 +32,37 @@ export function Form() {
         }
     });
 
-    const { handleSubmit, watch, reset } = newCycleForm;
+    const activeCycle = cycles.find(cycle => cycle.id === activeCycleId);
+    const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0;
 
-    function markCurrentCycleAsFinished() {
-        setCycles((state) => state.map(cycle => {
-            if (cycle.id === activeCycleId) {
-                return { ...cycle, finishedDateDate: new Date() }
-            } else {
-                return cycle
-            }
-        }));
-    };
+    useEffect(() => {
+        let interval: number;
 
-    function setSecondsPassed(seconds: number) {
-        setAmountSecondsPassed(seconds);
-    };
+        if (activeCycle) {
+            interval = Number(setInterval(() => {
+                const secondsDifference = differenceInSeconds(new Date(), activeCycle.startDate);
+
+                if(secondsDifference >= totalSeconds) {
+                    setCycles((state) => state.map(cycle => {
+                        if(cycle.id === activeCycleId) {
+                            return {...cycle, finishedDateDate: new Date()}
+                        } else {
+                            return cycle
+                        }
+                    }));
+                    setAmountSecondsPassed(totalSeconds);
+                    clearInterval(interval);
+                    setActiveCycleId(null);
+                } else {
+                    setAmountSecondsPassed(secondsDifference);
+                }
+            }, 1000));
+        }
+
+        return () => {
+            clearInterval(interval);
+        };
+    }, [activeCycle, totalSeconds, activeCycleId]);
 
     function handleCreateNewCycle(data: NewCycleFormData) {
         const id = String(new Date().getTime());
@@ -100,12 +97,35 @@ export function Form() {
         <>
             <form onSubmit={handleSubmit(handleCreateNewCycle)} className='flex flex-col items-center gap-14'>
 
-                <CyclesContext.Provider value={{ activeCycle, activeCycleId, markCurrentCycleAsFinished, amountSecondsPassed, setSecondsPassed }}>
-                    <FormProvider {...newCycleForm}>
-                        <NewCycleForm />
-                    </FormProvider>
-                    <Countdown />
-                </CyclesContext.Provider>
+                    <datalist id='taskSuggestions'>
+                        <option value="Projeto 1" />
+                        <option value="Projeto 2" />
+                        <option value="Projeto 3" />
+                    </datalist>
+
+                    <label htmlFor="minutesAmount">durante</label>
+                    <input
+                        className='bg-transparent h-10 border-0 border-b-2 border-b-gray-500 font-bold text-lg px-2 text-gray-100 placeholder:text-gray-500 placeholder:text-base w-16 focus:shadow-none focus:border-green-500 focus:ring-0 disabled:cursor-not-allowed disabled:opacity-70'
+                        type="number"
+                        id="minutesAmount"
+                        placeholder='00'
+                        step={5}
+                        min={1}
+                        max={60}
+                        disabled={!!activeCycle}
+                        {...register('minutesAmount', { valueAsNumber: true })}
+                    />
+
+                    <span>minutos</span>
+                </div>
+
+                <div className='font-roboto text-[10rem] leading-[8rem] text-gray-100 flex gap-4'>
+                    <span className='bg-gray-700 py-8 px-4 rounded-lg'>{minutes[0]}</span>
+                    <span className='bg-gray-700 py-8 px-4 rounded-lg'>{minutes[1]}</span>
+                    <span className='px-8 text-green-500 w-16 overflow-hidden flex justify-center items-center'>:</span>
+                    <span className='bg-gray-700 py-8 px-4 rounded-lg'>{seconds[0]}</span>
+                    <span className='bg-gray-700 py-8 px-4 rounded-lg'>{seconds[1]}</span>
+                </div>
 
                 {activeCycle ? (
                     <button type="button" onClick={handleInterruptCycle} className='w-full p-4 rounded-lg flex items-center justify-center gap-2 font-bold cursor-pointer bg-red-500 text-gray-100 enabled:hover:bg-red-700 disabled:opacity-70 disabled:cursor-not-allowed'>
