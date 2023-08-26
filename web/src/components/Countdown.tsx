@@ -1,6 +1,6 @@
 'use client'
 import { differenceInSeconds } from "date-fns";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import { CyclesContext } from "./Form";
 
 export function Countdown() {

@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Play } from 'lucide-react';
 import { Hand } from 'lucide-react';
 import { NewCycleForm } from './NewCycleForm';
-import { Countdown } from './Countdown';
+import { Countdown } from './Countdown'
 
 interface CycleProps {
     id: string;
