@@ -1,5 +1,5 @@
 'use client'
-import { createContext, useState } from 'react';
+import { useContext } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as zod from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -7,23 +7,7 @@ import { Play } from 'lucide-react';
 import { Hand } from 'lucide-react';
 import { NewCycleForm } from './NewCycleForm';
 import { Countdown } from './Countdown'
-
-interface CycleProps {
-    id: string;
-    task: string;
-    minutesAmount: number;
-    startDate: Date;
-    interruptedDate?: Date;
-    finishedDate?: Date;
-};
-
-interface CyclesContextType {
-    activeCycle: CycleProps | undefined;
-    activeCycleId: string | null;
-    amountSecondsPassed: number;
-    markCurrentCycleAsFinished: () => void;
-    setSecondsPassed: (seconds: number) => void;
-};
+import { CyclesContext } from '@/contexts/CyclesContext';
 
 const newCycleFormValidationSchema = zod.object({
     task: zod.string().min(1, "Informe a tarefa!"),
@@ -34,14 +18,8 @@ const newCycleFormValidationSchema = zod.object({
 
 type NewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>;
 
-export const CyclesContext = createContext({} as CyclesContextType);
-
 export function Form() {
-    const [cycles, setCycles] = useState<CycleProps[]>([]);
-    const [activeCycleId, setActiveCycleId] = useState<string | null>(null);
-
-    const activeCycle = cycles.find(cycle => cycle.id === activeCycleId);
-    const [amountSecondsPassed, setAmountSecondsPassed] = useState(0);
+    const { activeCycle, createNewCycle, interruptCurrentCycle } = useContext(CyclesContext);
 
     const newCycleForm = useForm<NewCycleFormData>({
         resolver: zodResolver(newCycleFormValidationSchema),
@@ -53,62 +31,19 @@ export function Form() {
 
     const { handleSubmit, watch, reset } = newCycleForm;
 
-    function markCurrentCycleAsFinished() {
-        setCycles((state) => state.map(cycle => {
-            if (cycle.id === activeCycleId) {
-                return { ...cycle, finishedDateDate: new Date() }
-            } else {
-                return cycle
-            }
-        }));
-    };
-
-    function setSecondsPassed(seconds: number) {
-        setAmountSecondsPassed(seconds);
-    };
-
-    function handleCreateNewCycle(data: NewCycleFormData) {
-        const id = String(new Date().getTime());
-        const newCycle: CycleProps = {
-            id,
-            task: data.task,
-            minutesAmount: data.minutesAmount,
-            startDate: new Date()
-        };
-
-        setCycles(state => [...state, newCycle]);
-        setActiveCycleId(id);
-        setAmountSecondsPassed(0);
-        reset();
-    };
-
-    function handleInterruptCycle() {
-        setCycles((state) => state.map(cycle => {
-            if (cycle.id === activeCycleId) {
-                return { ...cycle, interruptedDate: new Date() }
-            } else {
-                return cycle
-            }
-        }));
-        setActiveCycleId(null);
-    };
-
     const task = watch('task');
     const isSubmitDisabled = !task;
 
     return (
         <>
-            <form onSubmit={handleSubmit(handleCreateNewCycle)} className='flex flex-col items-center gap-14'>
-
-                <CyclesContext.Provider value={{ activeCycle, activeCycleId, markCurrentCycleAsFinished, amountSecondsPassed, setSecondsPassed }}>
-                    <FormProvider {...newCycleForm}>
-                        <NewCycleForm />
-                    </FormProvider>
-                    <Countdown />
-                </CyclesContext.Provider>
+            <form onSubmit={handleSubmit(createNewCycle)} className='flex flex-col items-center gap-14'>
+                <FormProvider {...newCycleForm}>
+                    <NewCycleForm />
+                </FormProvider>
+                <Countdown />
 
                 {activeCycle ? (
-                    <button type="button" onClick={handleInterruptCycle} className='w-full p-4 rounded-lg flex items-center justify-center gap-2 font-bold cursor-pointer bg-red-500 text-gray-100 enabled:hover:bg-red-700 disabled:opacity-70 disabled:cursor-not-allowed'>
+                    <button type="button" onClick={interruptCurrentCycle} className='w-full p-4 rounded-lg flex items-center justify-center gap-2 font-bold cursor-pointer bg-red-500 text-gray-100 enabled:hover:bg-red-700 disabled:opacity-70 disabled:cursor-not-allowed'>
                         <Hand />
                         Interromper
                     </button>

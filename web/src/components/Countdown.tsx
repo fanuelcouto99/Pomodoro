@@ -1,7 +1,7 @@
 'use client'
+import { CyclesContext } from "@/contexts/CyclesContext";
 import { differenceInSeconds } from "date-fns";
 import { useContext, useEffect } from "react";
-import { CyclesContext } from "./Form";
 
 export function Countdown() {
     const { activeCycle, activeCycleId, markCurrentCycleAsFinished, amountSecondsPassed, setSecondsPassed } = useContext(CyclesContext);

@@ -1,6 +1,6 @@
 'use client'
 import { useContext } from 'react';
-import { CyclesContext } from './Form'
+import { CyclesContext } from '@/contexts/CyclesContext';
 import { useFormContext } from 'react-hook-form';
 
 export function NewCycleForm() {

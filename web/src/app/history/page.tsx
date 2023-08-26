@@ -1,4 +1,7 @@
+'use client'
+import { useContext } from 'react';
 import './styles.css';
+import { CyclesContext } from '@/contexts/CyclesContext';
 
 export default function History() {
     const colorVariants = {
@@ -6,6 +9,8 @@ export default function History() {
         yellow: `before:content-[''] before:w-2 before:h-2 before:rounded-full before:bg-yellow-500`,
         red: `before:content-[''] before:w-2 before:h-2 before:rounded-full before:bg-red-500`
     };
+
+    const { cycles } = useContext(CyclesContext);
 
     return (
         <div className="flex-1 p-14 flex flex-col">
