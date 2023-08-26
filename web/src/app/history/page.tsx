@@ -1,5 +1,7 @@
 'use client'
 import { useContext } from 'react';
+import { formatDistanceToNow } from 'date-fns';
+import ptBR from 'date-fns/locale/pt-BR';
 import './styles.css';
 import { CyclesContext } from '@/contexts/CyclesContext';
 
@@ -28,46 +30,23 @@ export default function History() {
                     </thead>
 
                     <tbody>
-                        <tr>
-                            <td>Tarefa</td>
-                            <td>20 minutos</td>
-                            <td>Há 1 minuto</td>
-                            <td>
-                                <span className={`${colorVariants['yellow']}`}>Em andamento</span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Tarefa</td>
-                            <td>10 minutos</td>
-                            <td>Há 1 mes</td>
-                            <td>
-                                <span className={`${colorVariants['red']}`}>Interrompido</span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Tarefa</td>
-                            <td>30 minutos</td>
-                            <td>Há 3 meses</td>
-                            <td>
-                                <span className={`${colorVariants['green']}`}>Concluido</span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Tarefa</td>
-                            <td>20 minutos</td>
-                            <td>Há 2 meses</td>
-                            <td>
-                                <span className={`${colorVariants['green']}`}>Concluido</span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Tarefa</td>
-                            <td>20 minutos</td>
-                            <td>Há 2 meses</td>
-                            <td>
-                                <span className={`${colorVariants['green']}`}>Concluido</span>
-                            </td>
-                        </tr>
+                        {cycles.map(cycle => {
+                            return (
+                                <tr key={cycle.id}>
+                                    <td>{cycle.task}</td>
+                                    <td>{cycle.minutesAmount} minutos</td>
+                                    <td>{formatDistanceToNow(cycle.startDate, {
+                                        addSuffix: true,
+                                        locale: ptBR
+                                    })}</td>
+                                    <td>
+                                        {cycle.finishedDate && (<span className={`${colorVariants['green']}`}>Concluído</span>)}
+                                        {cycle.interruptedDate && (<span className={`${colorVariants['red']}`}>Interrompido</span>)}
+                                        {(!cycle.finishedDate && !cycle.interruptedDate) && (<span className={`${colorVariants['yellow']}`}>Em andamento</span>)}
+                                    </td>
+                                </tr>
+                            )
+                        })}
                     </tbody>
                 </table>
             </div>
